@@ -19,10 +19,19 @@ using namespace std;
         return fac;
     }
     
-    unsigned long long mCn(int m, int n) {
-        return factorial(m) / (factorial(n)*factorial(m-n));
-    }
+    // unsigned long long mCn(int m, int n) {
+    //     return factorial(m) / (factorial(n)*factorial(m-n));
+    // }
     
+    
+unsigned long long new_mCn(int m, int n) {
+    long long result = 1;
+    for (int i = 1; i <= n; i++) {
+        result *= (m - i + 1);
+        result /= i; 
+    }
+    return result;
+}
     
 int main()
 {
@@ -35,7 +44,8 @@ int main()
         
     cin >> n>> m;
     
-    cout << mCn(m,n) << endl;
+    // cout << mCn(m,n) << endl;
+    cout << new_mCn(m,n) << endl;
     
     }
     return 0;
