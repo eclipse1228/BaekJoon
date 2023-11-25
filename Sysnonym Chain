@@ -1,0 +1,184 @@
+// Synonym Chain // FileAccess class 
+
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <sstream>
+
+using namespace std;
+
+// 노드
+struct Node {
+    int data;
+    Node *link;
+
+    Node(int data) : data(data), link(nullptr) {}
+};
+
+// 헤드 노드 
+struct HeadNode {
+    Node *head;
+};
+
+// 연결 리스트 클래스
+class linkedlist {
+private:
+    // 오버플로우는 총 16칸으로 제한
+    static int nodeCount;        
+public:
+    HeadNode* createList() {
+        HeadNode *H = new HeadNode;
+        H->head = nullptr;
+        return H;
+    }
+
+    void addNode(HeadNode *H, int x) {
+        if(nodeCount > 16) {
+            cout << "오버플로우 공간이 가득찼습니다." << endl;
+            return;
+        }
+
+        Node *NewNode = new Node(x);
+        if (H->head == nullptr) {
+            H->head = NewNode;
+        } else {
+            Node *LastNode = H->head;
+            while (LastNode->link != nullptr) {
+                LastNode = LastNode->link;
+            }
+            LastNode->link = NewNode;
+        }
+        nodeCount++;
+    }
+
+    void deleteNode(HeadNode *H, int x) {
+        if (H->head == nullptr) return;
+        Node *temp = H->head, *prev = nullptr;
+        if (temp != nullptr && temp->data == x) {
+            H->head = temp->link;
+            delete temp;
+            nodeCount--;
+            return;
+        }
+        while (temp != nullptr && temp->data != x) {
+            prev = temp;
+            temp = temp->link;
+        }
+        if (temp == nullptr) return;
+        prev->link = temp->link;
+        delete temp;
+        nodeCount--;
+    }
+
+    void printList(HeadNode *L) {
+        Node *p = L->head;
+        while (p != nullptr) {
+            cout << p->data << ",";
+            p = p->link;
+        }
+        cout << endl;
+    }
+
+        void addNode_final(HeadNode *H, int x) {
+        Node *NewNode = new Node(x);
+        if (H->head == nullptr) {
+            H->head = NewNode;
+        } else {
+            Node *LastNode = H->head;
+            while (LastNode->link != nullptr) {
+                LastNode = LastNode->link;
+            }
+            LastNode->link = NewNode;
+        }
+    }
+};
+
+int linkedlist::nodeCount = 0;
+
+// 해시 함수
+int hashFunction(int x) {
+    return x % 16;
+}
+
+// 삽입 함수
+void fileInsert(HeadNode *hashTable[], int input) {
+    // 오버플로우 공간은 16칸이 넘으면 안 된다.
+    int index = hashFunction(input);
+    linkedlist list;
+
+    // 중복된 값 유무 체크
+    Node* current = hashTable[index]->head;
+    while (current != nullptr){
+        if (current->data == input)
+        {
+            return;
+        }
+        current = current->link;
+    }
+    list.addNode(hashTable[index], input);
+}
+
+// 삭제 함수
+void fileDelete(HeadNode *hashTable[], int input) {
+    int index = hashFunction(input);
+    linkedlist list;
+    list.deleteNode(hashTable[index], input);
+}
+
+// 전체 프린트
+void printHashTable(HeadNode *hashTable[]) {
+    linkedlist list;
+    for (int i = 0; i < 16; ++i) {
+        cout << i << ":";
+        list.printList(hashTable[i]);
+    }
+}
+
+// 비어있는 곳에 -1 하나씩 넣기
+void givminus(HeadNode* hashTable[]) {
+    linkedlist list; 
+    for (int i=0; i<16; i++){
+        if (hashTable[i]->head == nullptr){
+            list.addNode_final(hashTable[i], -1);
+        }
+    }
+}
+
+int main() {
+    HeadNode* hashTable[16];
+    for (int i = 0; i < 16; ++i) {
+        hashTable[i] = new HeadNode();
+        hashTable[i]->head = nullptr;
+    }
+
+    ifstream fin("hash_cmd.txt");
+    vector<string> file_array;
+    string line;
+
+    while(getline(fin,line)) {
+        file_array.push_back(line);
+    }
+    fin.close();
+
+    for(const string& cmdLine : file_array) { 
+        char command;
+        int value;
+        stringstream ss(cmdLine);
+
+        ss >> command >> value;
+
+        if(command == 'i'){
+            fileInsert(hashTable, value);
+        }
+        else if(command == 'r'){
+            fileDelete(hashTable, value);
+        }
+    }
+
+    // 비어있는곳 -1 처리해주기
+    givminus(hashTable);
+    printHashTable(hashTable);
+
+    return 0;
+}
